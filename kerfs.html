@@ -28,25 +28,29 @@ body {
    #t1 tr td {vertical-align: top;}
    .units {padding-left:5px;}
    .result {width:60px; background-color: #ccc; display:inline-block; text-align: right;}
+   #footer{font-size:80%; font-style:italic; text-align: center;}
   </style>
 </head>
 <body>
 
 <div id="container">
+  
 <div align="center">
 <h1>Kerf Calculator</h1></div>
 <div id='noscript'>Your browser must have Javascript enabled for this page to work.</div>
-<p>This page calculates the kerfing required to make a circular bend in foam of arbitrary arc angle.<br>
+<p>This page calculates the kerfing required to make a circular bend in foam that will yield an arc described by a designated angle.<br>
 It is determined by calculating the amount of material needed to be removed from the "inside" of a slab to allow it to bend a given amount.</p>
 
-<p> Many folks make their cuts vertically but some try to make them "V" shaped. Both types have the same width. The angles for V cuts are calculated here.
+<p> Many folks make their cuts vertically to give a "U" shaped kerf, but some try to make them "V" shaped. You can set the <span style="font-weight: 600;">angle</span> from the vertical and calculate the <span style="font-weight: 600;">spacing</span> and <span style="font-weight: 600;">width</span> of cuts needed for a desired bend here. It is probable that there is maximum kerf angle beyond which foam will fracture during bending. 
+
+<p>The calculation for "U" and "V" shaped cuts is the same. The "U" shaped cuts would make vertical cuts with the same <span style="font-weight: 600;">spacing</span> and <span style="font-weight: 600;">width</span> as indicated for the "V" cuts.  
 
 <!--
  R= radius of kerf; &#920;=arc degrees; T=foam thickness; L=length of curved foam required.
 -->
 
 <div style="text-align:center;">
-   <img src="image/kerfsimple.png" width="600px">
+   <img src="image/kerfparams.png" width="700px">
 </div>
 
 <p>Here's an easy way to calculate it. 
@@ -72,21 +76,35 @@ It is determined by calculating the amount of material needed to be removed from
   </tr> 
 
   <tr>
-    <td align="right">Curve radius:</td> 
+    <td align="right">Bend radius:</td> 
     <td><input type="text" name="radius" value=""/><span class="units">inches</span></td>
 
     <td align="right">Arc (degrees):</td> 
     <td><input type="text" name="arc" value="90" /><span class="units">degrees</span></td>
   </tr> 
 
-  <tr>
-    <td align="right">Kerf spacing </td> 
-    <td><input type="text" name="space" value="" /><span class="units">inches</span></td>
-  </tr> 
+   
   
-  <tr>
+  
+
+<tr>
+     <td align="right">Cut angle:<br>(from vertical)</td>
+     <td>
+        <select name="symangle">
+           <option value='5' >5</option>
+           <option value='7.5' >7.5</option>
+           <option value='10' selected>10</option> 
+           <option value='15'>15</option> 
+           <option value='20'>20</option> 
+        </select> <span class="units">degrees</span>
+      </td>
+
+  </tr>
+
+ <tr>
     <td colspan="2"><hr align=left></td>
   </tr>
+
 
   <tr>
     <td align="right"><input type="button" value="Calculate" >&nbsp;<strong>Width of kerf</strong>:</td> 
@@ -98,13 +116,14 @@ It is determined by calculating the amount of material needed to be removed from
     <td id="required"> *** REQUIRED FIELD</td>
   </tr> 
   <tr>
-     <td align="right">Symmetrical<br>cut angle:</td><td><div class="result" id="symangle">&nbsp;</div></td>
-
+    <td align="right">Kerf spacing </td> 
+    <td><div id="space" class="result">&nbsp;</div><span class="units">inches</span></td>
   </tr>
 </table>
 </form>
 
 <hr align=left>
+<div id="footer">Updated:01/27/2018:0037Z</div>
 </div>
 
 <script language="JavaScript">  
@@ -124,27 +143,25 @@ function calculate(obj) {
   reqfld = 0;
   document.getElementById('required').style.display = 'none'; 
 
-  var keys = ['radius', 'arc', 'space','depth'];
+  var keys = ['radius', 'arc', 'depth','symangle'];
   for (var i=0;i<keys.length;i++) {
      value = keys[i];
      obj[value].value = Number(obj[value].value.replace(/[^0-9.]/g, ''));
-   
+     console.log( value + ': ' + obj[value].value);
+   }
 
     document.getElementById('length').innerText = (3.14159*2*obj['radius'].value*obj['arc'].value/360).toFixed(2);
 
       var fracremoved =obj['thick'].value/obj['radius'].value;
-      var width       = (fracremoved * obj['space'].value).toFixed(2);
-      document.getElementById('width').innerText = width;
-        
-    //obj['width'].value = obj['space'].value*(1-fracremoved)/fracremoved;
-    var angle = calcAngle(width, obj['thick'].value-obj['depth'].value);
-  //  document.getElementById('onerightangle').innerText= Math.round(angle);
-    
-    var angle = calcAngle( width/2, obj['thick'].value-obj['depth'].value);
-    document.getElementById('symangle').innerText= Math.round(angle);
+     // var width       = (fracremoved * obj['space'].value).toFixed(2);
+      var tan = Math.tan(obj['symangle'].value*Math.PI/180);
+          console.log('tan'+': '+ tan);
+      var width       =  2*(obj['thick'].value -obj['depth'].value) * Math.tan(obj['symangle'].value*Math.PI/180);
 
-  };
-   
+      document.getElementById('width').innerText = width.toFixed(2);
+
+      document.getElementById('space').innerText = (width * obj['radius'].value/obj['thick'].value).toFixed(2);
+        
   if (!reqfld){
 	    
   }     
