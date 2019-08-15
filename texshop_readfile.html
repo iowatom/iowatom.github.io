@@ -1,0 +1,341 @@
+<!DOCTYPE html >
+ <html>
+   <head>
+    <!--  <meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
+ -->     <title>Plist Editor</title>
+
+
+  <style> 
+
+  	body {margin: 30px 0 0 30px;}
+    body.dragging, body.dragging * {
+        cursor: move !important;
+       }
+
+.dragged {
+  position: absolute;
+  opacity: 0.5;
+  z-index: 2000;
+}
+
+ol.plist li.placeholder {
+  position: relative;
+  /** More li styles **/
+}
+ol.plist li.placeholder:before {
+  position: absolute;
+  /** Define arrowhead **/
+}
+
+#lists > div {vertical-align: top; border: 1px solid red;
+               width: 350px; min-height:100px; display:inline-block; margin:0 30px 0 0;}
+
+ol#listA, ol#listB {
+  border: 1px solid blue;
+  width:300px;
+  display:inline-block;
+ /* vertical-align: top; */
+}
+       .head  {font-weight:800;}
+       .head ol {font-weight: 500;}
+.fromA {color:blue; font-weight:800;font-size:110%; }
+.fromB {color:red;font-weight:800;font-size:110%;}
+     </style>
+     
+    <script src="js/jquery-3.4.1.min.js" type="text/javascript"></script>
+
+    <!-- https://johnny.github.io/jquery-sortable/ -->
+    <!-- JAVASCRIPT FOR Drag & Drop nested lists -->
+     <script src="js/jquery-sortable.js" type="text/javascript"></script>
+     <script type="application/javascript">
+
+      // SEE: https://www.w3schools.com/xml/dom_intro.asp    
+
+var dicts = [{},{}];
+var plist_array =[];
+var list_serial =[];
+window.onload = function() {
+    var fileInput = document.getElementById('fileInput');
+    var fileDisplayArea = document.getElementById('fileDisplayArea');
+    var maxDepth;
+
+    $('#makeplist').prop('disabled',true);
+
+
+$('.fileInput').on('change', function(e) {
+  $('#makeplist').prop('disabled',false);
+
+  var file = e.target.files[0];
+  var indx = $('.fileInput').index(this);
+  // alert('here ' + indx + ' : '+ file.name );
+  
+  var reader = new FileReader();
+  reader.onload = function(e) {          
+             setTimeout(function() { return },200);
+
+         dicts[indx] = parse_xml(reader.result);
+
+        var text ='';
+       for (var i=0;i<dicts[indx].names.length;i++){
+              
+              if (typeof dicts[indx].names[i] !== 'string'){
+                text += submenu(dicts[indx].names[i], indx+':'+i);              
+              } else {
+                text += '<li data-ind="'+indx+':'+i+'">'+dicts[indx].names[i]+' &nbsp; ' + indx+':'+ i +'</li>';
+              }
+       }
+
+           $('.plist').eq(indx).html(text);
+
+           setTimeout(function() { return },200);
+   }  
+   reader.readAsText(file);
+});
+
+//////////////////
+    var lists =  $("#listA,#listB").sortable({ group: 'plist',
+     delay: 500,
+     onDrop: function (item, container, _super) {
+       list_serial = lists.sortable("serialize").get();
+
+     ind = $(item[0]).attr('data-ind').split(':'); 
+      
+      contindex = container.el[0].id=='listA'? 0:1; 
+
+      $(item).removeClass('fromA fromB');
+
+      if (ind[0]==1 && contindex==0)  $(item).addClass('fromB');
+      if (ind[0]==0 && contindex==1)  $(item).addClass('fromA')
+
+
+     rootxml = dicts[0].rootxml.cloneNode(true);
+
+     outXML = make_outxml(list_serial[0],rootxml);
+
+     _super(item, container);
+     }
+    });
+
+//////////////
+function make_outxml(arr,xml,level){
+   if(typeof level === "undefined") level =0;
+   for(var i=0;i<arr.length;i++){
+ 
+     var dict = get_dict(arr[i].ind);
+ 
+    if (arr[i].children){ 
+
+      make_outxml(arr[i].children[0], dict.node);
+     
+     }
+     xml.getElementsByTagName('array')[0].appendChild(dict.node);
+   }
+    return xml;
+}
+
+function get_dict (dictids){
+  var dict ={'name':'XXXX','node':'<bad>BAD</bad>'};
+  var ids =  dictids.toString().split(':');
+  var didx = ids.shift();               
+          var  indices =  ids.map((x)=>'['+x+']').join('');
+           dict.name = eval('dicts['+didx+'].names'+indices);
+           dict.node = eval('dicts['+didx+'].nodes'+indices);
+
+      return  dict;       
+}
+
+
+function fill_plist_array(arr,indx){
+   
+if(typeof indx === "undefined" || indx.length==0) indx = [0];      
+       
+for (var i=0; i<arr.length;i++){
+      
+           // remember  '=' does not make new copies of arrays.
+           // You must clone arrays to make independent copies.
+
+    var currindx =  indx.map((x) => x);;
+
+    console.log (i +' ; '+currindx.join(':'));
+
+    var    dict = get_dict(arr[i].ind);
+             
+     if (arr[i].children) {
+        
+        currindx[currindx.length-1]=i
+        currindx.push(0);
+         
+        plist_array[plist_array.length] = {'nodeidx':arr[i].ind,
+                                        'plistidx': currindx,
+                                        'name':dict.name };
+        fill_plist_array(arr[i].children[0], currindx  ); 
+        
+      } else {
+
+          if (indx.length>1 && indx[indx.length-1]==0) {
+          currindx[currindx.length-1]=i+1;
+          } else {
+          currindx[currindx.length-1]=i;
+          }
+
+        plist_array[plist_array.length]={'nodeidx':arr[i].ind,
+                                        'plistidx': currindx,
+                                        'name': dict.name};
+      }
+   }
+}
+
+    $('#makeplist').on('click', function(){
+      
+      var text = '';       
+      sorted_plist = plist_array.sort((a,b)=>{
+
+           for (var i=0;i<a.plistidx.length;i++){
+             if (a.plistidx[i] !== b.plistidx[i]) return a.plistidx[i]-b.plistidx[i];
+           }
+
+         }); 
+
+      console.log('SORTED DONE');
+      var currparent = {};
+    
+      for (var i=0;i<sorted_plist.length;i++){
+         if (sorted_plist[i].plistidx.length==1 ) continue;
+        nodeidx =  sorted_plist[i].nodeidx.toString().split(':');
+
+
+           
+          if (sorted_plist[i].plistidx[sorted_plist[i].plistidx.length -1] == 0){ 
+              
+            currparent = 
+              eval('dicts.nodes'+nodeidx.map((x)=>'['+x+']').join('') );
+
+
+            continue;
+          }
+
+        currnode = eval ('dicts.nodes'+ nodeidx.map((x)=>'['+x+']').join(''));
+        currparent.getElementsByTagName('array')[0].appendChild(currnode);
+         
+      }
+
+      outXML = make_outxml(list_serial[0],dicts[0].rootxml);
+      text = new XMLSerializer().serializeToString(outXML);
+      download('text.xml', text);
+
+    });
+
+}
+////////// END ONLOAD() ///////
+
+function download(filename, text) {
+    var element = document.createElement('a');
+    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+    element.setAttribute('download', filename);
+
+    element.style.display = 'none';
+    document.body.appendChild(element);
+
+    element.click();
+
+    document.body.removeChild(element);
+}
+
+
+
+function parse_xml(plist){
+
+var parser = new DOMParser();
+var xmlDoc = parser.parseFromString(plist,"text/xml");
+           
+        arr = xmlDoc.getElementsByTagName('array')[0].cloneNode(true);
+       
+     var  dicts = extract_nodes(arr);
+            
+
+xmlDoc.getElementsByTagName('array')[0].innerHTML='';
+dicts.rootxml = xmlDoc.cloneNode(true);
+
+return dicts;
+}
+
+function submenu(arr,ind){
+     
+     text = '<li class="head" data-ind="'+ ind+ ':0">'+arr[0] +' ' + ind +':0' ;
+     text += '<ol>';
+
+    for(var i=1;i<arr.length;i++) {
+
+             if (typeof arr[i]!=='string') {
+                text += submenu(arr[i], ind+':'+i);
+                 continue;
+                }
+            text += '<li data-ind="'+ind+':'+i+'">'+arr[i]+ ' &nbsp; ' + ind+':'+i+'</li>';
+             
+            }
+
+    return text+'</ol></li>'
+  }
+
+function extract_nodes (xml){
+   
+   var ret_array=[];
+   var names =[];
+   var nodes =[];
+
+   var elems = xml.children;
+
+   for(var i=0;i<elems.length;i++){
+     
+       // The 3rd 'string' element is the name of the node 
+      var name = elems[i].getElementsByTagName('string')[2].innerHTML;
+       
+      if (elems[i].getElementsByTagName('array')[0]){
+      
+        var subxml = elems[i].getElementsByTagName('array')[0];
+           
+            var temp = extract_nodes(subxml);
+            names[names.length] = [name].concat(temp.names);
+             // Erase dicts in array.
+             elems[i].getElementsByTagName('array')[0].innerHTML ='';
+            nodes[nodes.length] = [elems[i]].concat(temp.nodes);
+        
+      } else {
+        
+        names[names.length]=name;
+        nodes[nodes.length]=elems[i];
+      }
+   }
+ 
+   ret_array.names = names;
+   ret_array.nodes = nodes;
+   return ret_array;
+}
+
+     </script>
+   </head>
+   <body>
+     <div id="page-wrapper">
+     <h2>TeXShop macro editor</h2>
+    
+       <div id='lists'>
+        <div>
+         Select a text file: 
+         <input type="file" id="fileInput1" class="fileInput">
+         <button id="makeplist">make plist</button>
+         <ol id="listA" class="plist"></ol>
+        </div>
+        
+        <div>
+         Select a text file: 
+         <input type="file" id="fileInput2" class="fileInput">
+          <br><br>
+          <ol id="listB" class="plist"></ol> 
+        </div>
+       </div>
+
+       <div id="fileDisplayArea"></div>
+       
+     </div>
+   </body>
+ </html>
