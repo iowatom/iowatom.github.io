@@ -26,6 +26,7 @@ ol.plist li.placeholder:before {
   position: absolute;
   /** Define arrowhead **/
 }
+#lists {width:1200px;}
 
 #lists > div {vertical-align: top; border: 1px solid red;
                width: 350px; min-height:100px; display:inline-block; margin:0 30px 0 0;}
@@ -221,7 +222,15 @@ for (var i=0; i<arr.length;i++){
 
       outXML = make_outxml(list_serial[0],dicts[0].rootxml);
       text = new XMLSerializer().serializeToString(outXML);
-      download('text.xml', text);
+
+      var d = new Date();
+      date = d.getFullYear() + ("0"+(d.getMonth()+1)).slice(-2);
+
+      date += ("0"+d.getDate()).slice(-2) + ("0"+d.getHours()).slice(-2);
+
+      date += ("0"+d.getMinutes()).slice(-2) +("0"+d.getSeconds()).slice(-2);
+
+      download('latex_macros'+date+'.plist', text);
 
     });
 
@@ -316,22 +325,34 @@ function extract_nodes (xml){
    </head>
    <body>
      <div id="page-wrapper">
-     <h2>TeXShop macro editor</h2>
-      <div>See: ~/Library/TeXShop/Macros/Macros_Latex.plist</div>
+     <h2>TeXShop macro list editor</h2>
+      <div> Alter the order and content of TeXShop macro lists.
+        <br>See: ~/Library/TeXShop/Macros/Macros_Latex.plist</div>
        <div id='lists'>
         <div>
-         Select a text file: 
+         Select the base plist file: 
          <input type="file" id="fileInput1" class="fileInput">
+         <br>
          <button id="makeplist">make plist</button>
          <ol id="listA" class="plist"></ol>
         </div>
         
         <div>
-         Select a text file: 
+         Select a source plist file : 
          <input type="file" id="fileInput2" class="fileInput">
           <br><br>
           <ol id="listB" class="plist"></ol> 
         </div>
+        <div>
+          <ul>
+          <li>Drag new macros onto the base list from the source list.
+          <li>Remove macros from the base list by dragging to the source.
+          <li>Rearrange items to change order on the base list.
+          <li>"make plist" saves altered base list to "downloads".
+          </ul>
+        </div>  
+
+
        </div>
 
        <div id="fileDisplayArea"></div>
