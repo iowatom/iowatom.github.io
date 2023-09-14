@@ -10,7 +10,7 @@ window.addEventListener("DOMContentLoaded", function(){
   /* Do things after DOM has fully loaded */ 
 
    document.querySelector('#tryit').addEventListener('click',e=>{
-       fetchIt('../svg/IAcountiesNEW.svg').then ((data) =>{ 
+       fetchIt('svg/IAcountiesNEW.svg').then ((data) =>{ 
          document.querySelector('#svg').innerHTML=data;
          clearMapColors('#ded');
        });
