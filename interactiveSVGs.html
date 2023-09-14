@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Iowa Counties</title>
+<script>
+const jsonText = 0;
+window.addEventListener("DOMContentLoaded", function(){
+  /* Do things after DOM has fully loaded */ 
+
+   document.querySelector('#tryit').addEventListener('click',e=>{
+       fetchIt('../svg/IAcountiesNEW.svg').then ((data) =>{ 
+         document.querySelector('#svg').innerHTML=data;
+         clearMapColors('#ded');
+       });
+   })
+
+   document.querySelectorAll('.color').forEach(elem=>{
+       elem.style.backgroundColor = elem.dataset.fill;
+       elem.addEventListener('click', e =>{
+            document.querySelector('#ia52').style.fill=e.target.dataset.fill;
+           // console.log(e.target.dataset.fill);
+       })
+   });
+
+  //clearMapColors();
+
+});
+/////////////////////
+fillColors = (type='')=>{
+
+   let url ='';
+    if(jsonText==1) {
+       url = 'json/test'+type+'.json';
+    }
+    else {
+       url = 'json/iowacountiesjson.php?type='+type;
+    }
+//   loadJSON(url).then(retval=>{
+   fetchIt(url).then(retval=>{ 
+       
+       keytext = retval.key.title +'<ul>';
+        retval.key.vals.forEach(val=>{
+          keytext += '<li><div style="background-color:'+
+                  val.fill +';">&nbsp;</div> <div>'+val.val +'</div></li>';
+        })
+        keytext+='</ul>';
+
+       document.querySelector('#key').innerHTML=keytext;
+
+       retval.ids.forEach(res=>{
+          elem = document.querySelector('#'+res.id);
+           if (elem)  elem.style.fill=res.fill;
+
+      }); 
+  });
+}
+clearMapColors = (clr)=>{
+  document.querySelectorAll('#svg svg [id ^= "ia"]').forEach(elem=>{
+    elem.style.fill=clr;
+  })
+}
+
+const fetchIt = async (url) => await fetch(url).then(r => r.clone().json().catch(() => r.text() ) );
+
+</script>
+<style>
+  body {margin-left:60px;}
+  #svg {border:1px solid;  display:inline-block; vertical-align: middle;}
+  #svg svg{width:400px; height:280px; border: 1px solid green; }
+  #tryit {border:2px solid; display:inline-block; vertical-align: middle; padding:5px;}
+  #key li div:nth-of-type(1) {display: inline-block; width:15px;border:0.5px solid;}
+  #key li div:nth-of-type(2) {display: inline-block; text-align: right; width:30px; }
+  .color {width:20px; border: 0.5px solid; display:inline-block; }
+</style>
+</head>
+<body>
+<h2>Interactive SVGs</h2>
+
+<div>This illustrates a way to add an external SVG image to the DOM that can be manipulated by vanilla javascript.
+</div>
+
+<div>
+      The HTML page contains a div element with id="svg".
+      <pre>
+        &lt;div id="svg"&gt;&lt;/div&gt;
+      </pre>
+      When the HTML page is loaded, the script reads the SVG file and adds it to that div element:
+
+      <pre>
+        elem = document.querySelector('#svg'); 
+        fetchIt('../svg/IAcountiesNEW.svg').then ((data) =>{ 
+           elem.innerHTML=data;
+        });
+      </pre>
+
+       This line returns <i>text</i> or <i>json</i> depending on the format of the file.<br>
+       This tries to return a promise with JSON. If that fails, it returns the text.
+    <pre>
+        const fetchIt = async (url) => 
+                        await fetch(url).then(r => 
+                                         r.clone().json().catch(() =>
+                                                         r.text() ) );
+    </pre>
+</div>
+
+<div id="svg"></div>
+<div id="tryit">
+  Try it!
+</div>
+<div>
+  In SVG images, objects have unique ID identifiers assigned. These objects can be accessed like any other DOM object by referring to their ID.
+  <pre>
+     elem = document.querySelector('#XXX');
+  </pre>
+  SVG elements such as <i>path</i> and <i>rect</i> may have a fill value assigned to them.
+  <pre>
+     elem.style.fill="COLOR";
+  </pre>
+  Color may be assigned by any css color designator.
+  <div class='color' data-fill="red">&nbsp;</div>
+  <div class='color' data-fill="green">&nbsp;</div>
+  <div class='color' data-fill="#aaf">&nbsp;</div>
+  <div class='color' data-fill="yellow">&nbsp;</div>
+  <div class='color' data-fill="#666">&nbsp;</div>
+</div>
+</body>
+</html>
+
