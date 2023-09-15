@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Iowa Counties</title>
 <script>
-const jsonText = 0;
+const jsonText = 1;
 window.addEventListener("DOMContentLoaded", function(){
   /* Do things after DOM has fully loaded */ 
 
@@ -13,6 +13,7 @@ window.addEventListener("DOMContentLoaded", function(){
        fetchIt('svg/IAcountiesNEW.svg').then ((data) =>{ 
          document.querySelector('#svg').innerHTML=data;
          clearMapColors('#ded');
+         fillColors('gen2022');
        });
    })
 
@@ -29,7 +30,6 @@ window.addEventListener("DOMContentLoaded", function(){
 });
 /////////////////////
 fillColors = (type='')=>{
-
    let url ='';
     if(jsonText==1) {
        url = 'json/test'+type+'.json';
@@ -37,22 +37,17 @@ fillColors = (type='')=>{
     else {
        url = 'json/iowacountiesjson.php?type='+type;
     }
-//   loadJSON(url).then(retval=>{
    fetchIt(url).then(retval=>{ 
-       
        keytext = retval.key.title +'<ul>';
         retval.key.vals.forEach(val=>{
           keytext += '<li><div style="background-color:'+
                   val.fill +';">&nbsp;</div> <div>'+val.val +'</div></li>';
         })
         keytext+='</ul>';
-
        document.querySelector('#key').innerHTML=keytext;
-
        retval.ids.forEach(res=>{
           elem = document.querySelector('#'+res.id);
            if (elem)  elem.style.fill=res.fill;
-
       }); 
   });
 }
@@ -104,7 +99,7 @@ const fetchIt = async (url) => await fetch(url).then(r => r.clone().json().catch
     </pre>
 </div>
 
-<div id="svg"></div>
+<div id="svg"></div><div id="#key"></div>
 <div id="tryit">
   Try it!
 </div>
