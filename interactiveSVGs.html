@@ -67,6 +67,7 @@ const fetchIt = async (url) => await fetch(url).then(r => r.clone().json().catch
   #tryit {border:2px solid; display:inline-block; vertical-align: middle; padding:5px;}
   #key li div:nth-of-type(1) {display: inline-block; width:15px;border:0.5px solid;}
   #key li div:nth-of-type(2) {display: inline-block; text-align: right; width:30px; }
+  #mapoptions{display:none;}
   .color {width:20px; border: 0.5px solid; display:inline-block; }
 </style>
 </head>
@@ -99,7 +100,14 @@ const fetchIt = async (url) => await fetch(url).then(r => r.clone().json().catch
     </pre>
 </div>
 
-<div id="svg"></div><div id="key"></div>
+<div id="svg"></div>
+  <div id="mapoptions">
+    <ul>
+      <li data-type="gen2022">General Election 2022</li>
+      <li data-type="Gen2012">General Election 2012</li>
+    </ul>
+  </div>
+<div id="key"></div>
 <div id="tryit">
   Try it!
 </div>
