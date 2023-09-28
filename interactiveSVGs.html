@@ -84,20 +84,20 @@ const fetchIt = async (url) => await fetch(url).then(r => r.clone().json().catch
       </pre>
       When the HTML page is loaded, the script reads the SVG file and adds it to that div element:
 
-      <pre> 
-        fetchIt('../svg/IAcountiesNEW.svg').then ((data) =>{ 
-           document.querySelector('#svg').innerHTML=data;
-        });
-      </pre>
+  <pre> 
+    fetchIt('../svg/IAcountiesNEW.svg').then ((data) =>{ 
+      document.querySelector('#svg').innerHTML=data;
+    });
+  </pre>
 
        This line returns <i>text</i> or <i>json</i> depending on the format of the file.<br>
        This tries to return a promise with JSON. If that fails, it returns the text.
-    <pre>
-        const fetchIt = async (url) => 
-                        await fetch(url).then(r => 
-                        r.clone().json().catch(() =>
-                        r.text() ) );
-    </pre>
+  <pre>
+    const fetchIt = async (url) => 
+                    await fetch(url).then(r => 
+                    r.clone().json().catch(() =>
+                    r.text() ) );
+  </pre>
 </div>
 
 <div id="svg"></div>
