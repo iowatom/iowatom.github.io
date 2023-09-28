@@ -79,14 +79,14 @@ const fetchIt = async (url) => await fetch(url).then(r => r.clone().json().catch
 
 <div>
       The HTML page contains a div element with id="svg".
-      <pre>
-        &lt;div id="svg"&gt;&lt;/div&gt;
-      </pre>
+<pre>
+  &lt;div id="svg"&gt;&lt;/div&gt;
+</pre>
       When the HTML page is loaded, the script reads the SVG file and adds it to that div element:
 </div>
-<pre> 
+<pre>
   fetchIt('../svg/IAcountiesNEW.svg').then ((data) =>{ 
-    document.querySelector('#svg').innerHTML=data;
+  document.querySelector('#svg').innerHTML=data;
   });
 </pre>
 <div>
